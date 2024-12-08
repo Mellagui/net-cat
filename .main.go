@@ -22,36 +22,18 @@ var (
 	onlineClientCount = 0
 	serverCap         = 10
 	log               = ""
-	startingTime       = nowTime()
-	logFile			  *os.File
+	logFileName       = nowTime()
 )
 
-func exit() {
-	var value string
-	fmt.Println("Press D to close server.")
-	for value != "D" && value != "d" {
-		fmt.Scanln(&value)
-	}
-	savelogs("Server Ended at: "+nowTime()+"\n")
-	os.Exit(0)
-}
-
 func main() {
+
 	args := os.Args[1:]
 	port := "8989"
 
-	var err error
-	logFile, err = os.Create("logs/" + startingTime + ".txt")
-	if err != nil {
-		fmt.Print(err)
-		return
-	}
-	defer logFile.Close()
-	savelogs("Server Started at: "+startingTime+"\n")
 	if len(args) > 1 {
 		fmt.Println("[USAGE]: ./TCPChat $port")
+		return
 	}
-		
 	if len(args) == 1 {
 		port = args[0]
 	}
@@ -64,7 +46,6 @@ func main() {
 	defer listen.Close()
 
 	fmt.Println("Listening on the port :" + port)
-	go exit()
 
 	clientID := 0 // Counter for assigning unique IDs to clients
 
@@ -255,8 +236,7 @@ func broadcastMessage(sender net.Conn, senderName, message string, sys bool, cle
 	}
 
 	log += message
-
-	savelogs(message)
+	savelogs(log)
 
 	for clientConn, client := range clients {
 		if clear && clientConn == sender {
@@ -291,10 +271,18 @@ func broadcastMessage(sender net.Conn, senderName, message string, sys bool, cle
 		}
 	}
 }
-
+	
 // Handle multi dataFiles
 func savelogs(logs string) {
-	_, err := logFile.WriteString(logs)
+
+	logFile, err := os.Create("logs/" + logFileName + ".txt")
+	if err != nil {
+		fmt.Print(err)
+		return
+	}
+	defer logFile.Close()
+
+	_, err = logFile.WriteString(logs)
 	if err != nil {
 		fmt.Println(err)
 	}
