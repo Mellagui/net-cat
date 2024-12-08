@@ -25,21 +25,6 @@ var (
 	logFileName       = nowTime()
 )
 
-// // Make dynamic logFiles
-// func init() {
-// 	for i := 0; ; i++ {
-// 		if i == 0 {
-// 			fileLog = fileLog + ".txt"
-// 		} else {
-// 			fileLog = fileLog + strconv.Itoa(i) + "txt"
-// 		}
-// 		if _, err := os.Stat(fileLog) ; os.IsNotExist(err) {
-// 			break
-// 		}
-// 		fileLog = "logFile"
-// 	}
-// }
-
 func main() {
 
 	args := os.Args[1:]
@@ -217,7 +202,7 @@ func handleClient(conn net.Conn, id int) {
 
 		if message != "\n" {
 			if isFlageName {
-				broadcastMessage(conn, name, oldName+" has changed our name: "+name+"\n", true, false)
+				broadcastMessage(conn, name, oldName+" has changed his name: "+name+"\n", true, false)
 			} else if isFlageClear {
 				broadcastMessage(conn, name, "", true, true)
 			} else {
@@ -286,7 +271,7 @@ func broadcastMessage(sender net.Conn, senderName, message string, sys bool, cle
 		}
 	}
 }
-
+	
 // Handle multi dataFiles
 func savelogs(logs string) {
 
