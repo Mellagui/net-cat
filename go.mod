@@ -1,3 +1,3 @@
-module netcut
+module netcat
 
 go 1.23.3
