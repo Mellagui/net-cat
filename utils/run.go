@@ -11,6 +11,7 @@ func RunServer() {
 	port := "8989"
 
 	var err error
+	os.Mkdir("logs", 0777)
 	logFile, err = os.Create("logs/" + startingTime + ".txt")
 	if err != nil {
 		fmt.Print(err)

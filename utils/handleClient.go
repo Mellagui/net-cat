@@ -64,8 +64,7 @@ func handleClient(conn net.Conn, id int) {
 			onlineClientCount--
 			return
 		}
-		name = string(buf[:nameLen])
-		name = name[:len(name)-1] // Remove trailing newline character
+		name = string(buf[:nameLen-1])
 	}
 
 	//Load logs for client
@@ -76,7 +75,7 @@ func handleClient(conn net.Conn, id int) {
 	}
 
 	// Show to all users the new user connection
-	broadcastMessage(conn, "", name+" has joined our chat...\n", true, false)
+	broadcastMessage("", name+" has joined our chat...\n", true)
 
 	// Write client current bar
 	_, err = conn.Write([]byte("[" + nowTime() + "][" + name + "]:"))
@@ -103,7 +102,7 @@ func handleClient(conn net.Conn, id int) {
 
 			onlineClientCount--
 			fmt.Printf("Client %s disconnected: %v\n", name, err)
-			broadcastMessage(conn, "", name+" has left our chat...\n", true, false)
+			broadcastMessage("", name+" has left our chat...\n", true)
 			return
 		}
 
@@ -112,7 +111,7 @@ func handleClient(conn net.Conn, id int) {
 
 		// Handle flags
 		isFlageName := strings.HasPrefix(message, "--name=")
-		isFlageClear := strings.HasPrefix(message, "--clear")
+		isFlageClear := message[:len(message)-1] == "--clear"
 
 		oldName := name
 		if message != "\n" {
@@ -129,19 +128,29 @@ func handleClient(conn net.Conn, id int) {
 			removeLine := "\033[K"
 	
 			// Write current user name bar
-			_, err = conn.Write([]byte(movePriviousLine+ removeLine))
+			_, err = conn.Write([]byte(movePriviousLine + removeLine))
 			if err != nil {
 				fmt.Println("Error write current user bar name:", err)
 				return
 			}
 
 			if isFlageName {
-				broadcastMessage(conn, name, oldName+" has changed his name: "+name+"\n", true, false)
+				broadcastMessage(name, oldName+" has changed his name: "+name+"\n", true)
 			} else if isFlageClear {
-				broadcastMessage(conn, name, "", true, true)
+				chatClear := "\033[3J\033[2J\033[H"
+				_, err := conn.Write([]byte(chatClear))
+				if err != nil {
+					fmt.Printf("Error writing to client %s: %v\n", name, err)
+				}
+				// Write current user name bar
+				_, err = conn.Write([]byte("[" + nowTime() + "][" + name + "]:"))
+				if err != nil {
+					fmt.Println("Error write current user bar name:", err)
+					return
+				}
 			} else {
 				// Broadcast the message to all connected clients
-				broadcastMessage(conn, name, message, false, false)
+				broadcastMessage(name, message, false)
 			}
 		} else {
 			// Write client current bar
